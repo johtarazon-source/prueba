@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steam Grand Prix — Rebajas Veraniegas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Pantalla de carga -->
+  <div id="loader" class="loader" aria-hidden="true">
+    <div class="loader__inner">
+      <svg class="loader__logo" viewBox="0 0 64 64" role="img" aria-label="Cargando">
+        <circle cx="32" cy="32" r="28" fill="none" stroke="var(--steam-accent)" stroke-width="3" stroke-dasharray="44 132" stroke-linecap="round" />
+        <path d="M32 8 L32 32 L48 40" fill="none" stroke="var(--steam-accent-bright)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <p class="loader__text">Cargando tienda…</p>
+    </div>
+  </div>
+
+  <!-- Cursor personalizado (punto central + crosshair) -->
+  <div id="cursor-dot" class="cursor-dot" aria-hidden="true"></div>
+  <div id="cursor-ring" class="cursor-ring" aria-hidden="true"></div>
+
+  <!-- Capa de estrellas reactivas al scroll -->
+  <canvas id="stars-canvas" class="stars-canvas" aria-hidden="true"></canvas>
+
+  <div id="page" class="page is-hidden">
+    <!-- Navbar principal -->
+    <header class="nav-top" id="navTop">
+      <div class="nav-top__bar">
+        <a href="#" class="nav-top__brand" aria-label="Steam — inicio">
+          <svg class="steam-logo" viewBox="0 0 120 36" aria-hidden="true">
+            <rect x="2" y="6" width="28" height="24" rx="3" fill="currentColor" opacity="0.9" />
+            <path d="M10 14 L22 18 L10 22 Z" fill="var(--steam-bg-darkest)" />
+            <text x="38" y="24" fill="currentColor" font-family="Rajdhani, sans-serif" font-size="18" font-weight="700" letter-spacing="0.08em">STEAM</text>
+          </svg>
+        </a>
+        <nav class="nav-top__links" aria-label="Principal">
+          <a href="#hero" class="nav-link">TIENDA</a>
+          <a href="#destacados" class="nav-link">COMUNIDAD</a>
+          <a href="#extras" class="nav-link">ACERCA DE</a>
+          <a href="#footer" class="nav-link">SOPORTE</a>
+        </nav>
+        <div class="nav-top__actions">
+          <a href="#" class="btn btn--install">Instalar Steam</a>
+          <a href="#" class="nav-top__login">Iniciar sesión</a>
+          <button type="button" class="nav-top__lang" id="langBtn">idioma ▾</button>
+        </div>
+      </div>
+
+      <!-- Sub-barra estilo tienda -->
+      <div class="nav-sub">
+        <div class="nav-sub__menus">
+          <button type="button" class="nav-sub__item">Tu tienda ▾</button>
+          <button type="button" class="nav-sub__item">Juegos ▾</button>
+          <button type="button" class="nav-sub__item">Software ▾</button>
+          <button type="button" class="nav-sub__item">Hardware ▾</button>
+          <button type="button" class="nav-sub__item">Noticias ▾</button>
+        </div>
+        <div class="search-wrap" id="searchWrap">
+          <button type="button" class="search-wrap__toggle" id="searchToggle" aria-expanded="false" aria-controls="searchInput">Buscar</button>
+          <input type="search" id="searchInput" class="search-wrap__input" placeholder="buscar en la tienda" autocomplete="off" />
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero -->
+      <section class="hero reveal" id="hero" data-reveal>
+        <div class="hero__parallax" id="heroParallax">
+          <div class="hero__layer hero__layer--sky" data-depth="0.02"></div>
+          <div class="hero__layer hero__layer--mountains" data-depth="0.05"></div>
+          <div class="hero__layer hero__layer--city" data-depth="0.1"></div>
+          <div class="hero__layer hero__layer--trees" data-depth="0.14"></div>
+        </div>
+
+        <div class="hero__scanlines" aria-hidden="true"></div>
+        <canvas id="heroParticles" class="hero__particles" aria-hidden="true"></canvas>
+
+        <div class="hero__content">
+          <p class="hero__pretitle">STEAM GRAND PRIX</p>
+          <div class="hero__title-wrap">
+            <h1 class="hero__title glitch" data-text="REBAJAS VERANIEGAS">REBAJAS VERANIEGAS</h1>
+          </div>
+          <p class="hero__dates">25 JUN — 09 JUL</p>
+
+          <div class="countdown" id="countdown" aria-live="polite">
+            <span class="countdown__label">Termina en</span>
+            <div class="countdown__units">
+              <div class="cd-unit"><span id="cd-days" class="cd-unit__val">00</span><span class="cd-unit__lbl">días</span></div>
+              <div class="cd-unit"><span id="cd-hours" class="cd-unit__val">00</span><span class="cd-unit__lbl">hrs</span></div>
+              <div class="cd-unit"><span id="cd-mins" class="cd-unit__val">00</span><span class="cd-unit__lbl">min</span></div>
+              <div class="cd-unit"><span id="cd-secs" class="cd-unit__val">00</span><span class="cd-unit__lbl">seg</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pista + auto (animación por rAF en JS) -->
+        <div class="hero__track-zone" id="bannerHoverZone">
+          <div class="hero__road">
+            <div class="hero__checkered" aria-hidden="true"></div>
+            <div class="hero__car-wrap" id="carWrap">
+              <div class="hero__trail" aria-hidden="true"></div>
+              <div class="hero__car" id="raceCar">
+                <div class="hero__car-flip">
+                  <div class="hero__car-squash">
+                    <svg class="car-svg" viewBox="0 0 200 80" aria-hidden="true" focusable="false">
+                  <defs>
+                    <linearGradient id="carBody" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffe566" />
+                      <stop offset="50%" stop-color="#f4c430" />
+                      <stop offset="100%" stop-color="#c9a227" />
+                    </linearGradient>
+                  </defs>
+                  <!-- sombra -->
+                  <ellipse cx="100" cy="72" rx="70" ry="6" fill="rgba(0,0,0,0.45)" />
+                  <!-- cuerpo -->
+                  <path d="M20 55 L35 38 L95 22 L165 28 L188 42 L192 52 L185 58 L25 60 Z" fill="url(#carBody)" stroke="#8b6914" stroke-width="1.2" />
+                  <path d="M95 22 L155 26 L168 38 L40 40 Z" fill="#2a1810" opacity="0.35" />
+                  <rect x="42" y="34" width="28" height="10" rx="2" fill="#1a0a20" opacity="0.6" />
+                  <!-- alerón -->
+                  <path d="M175 32 L195 26 L198 36 L182 40 Z" fill="#3d2a12" />
+                  <!-- ruedas -->
+                  <g class="car-wheel car-wheel--rear">
+                    <circle cx="48" cy="54" r="14" fill="#111" stroke="#333" stroke-width="2" />
+                    <circle cx="48" cy="54" r="6" fill="#444" />
+                  </g>
+                  <g class="car-wheel car-wheel--front">
+                    <circle cx="148" cy="54" r="14" fill="#111" stroke="#333" stroke-width="2" />
+                    <circle cx="148" cy="54" r="6" fill="#444" />
+                  </g>
+                  <path d="M168 38 L188 36 L192 48 L175 50 Z" fill="#ffb347" opacity="0.9" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Destacados: grid + carrusel -->
+      <section class="section featured reveal" id="destacados" data-reveal>
+        <div class="section__head">
+          <h2 class="section__title">Destacados</h2>
+          <p class="section__sub">Ofertas seleccionadas para el Grand Prix</p>
+        </div>
+
+        <div class="featured__grid" id="featuredGrid">
+          <!-- 6 cards -->
+          <article class="game-card" style="--delay: 0.05s">
+            <div class="game-card__art game-card__art--tomb"></div>
+            <span class="game-card__badge">-75%</span>
+            <div class="game-card__overlay">
+              <p class="game-card__price">MXN $149.99</p>
+              <button type="button" class="game-card__buy">Comprar</button>
+            </div>
+            <h3 class="game-card__name">Shadow of the Tomb Raider</h3>
+          </article>
+          <article class="game-card" style="--delay: 0.12s">
+            <div class="game-card__art game-card__art--dbz"></div>
+            <span class="game-card__badge">-85%</span>
+            <div class="game-card__overlay">
+              <p class="game-card__price">MXN $89.99</p>
+              <button type="button" class="game-card__buy">Comprar</button>
+            </div>
+            <h3 class="game-card__name">Dragon Ball FighterZ</h3>
+          </article>
+          <article class="game-card" style="--delay: 0.19s">
+            <div class="game-card__art game-card__art--tropico"></div>
+            <span class="game-card__badge">-50%</span>
+            <div class="game-card__overlay">
+              <p class="game-card__price">MXN $299.99</p>
+              <button type="button" class="game-card__buy">Comprar</button>
+            </div>
+            <h3 class="game-card__name">Tropico 6</h3>
+          </article>
+          <article class="game-card" style="--delay: 0.26s">
+            <div class="game-card__art game-card__art--neon"></div>
+            <span class="game-card__badge">-40%</span>
+            <div class="game-card__overlay">
+              <p class="game-card__price">MXN $119.99</p>
+              <button type="button" class="game-card__buy">Comprar</button>
+            </div>
+            <h3 class="game-card__name">Neon Drift Protocol</h3>
+          </article>
+          <article class="game-card" style="--delay: 0.33s">
+            <div class="game-card__art game-card__art--void"></div>
+            <span class="game-card__badge">-66%</span>
+            <div class="game-card__overlay">
+              <p class="game-card__price">MXN $79.99</p>
+              <button type="button" class="game-card__buy">Comprar</button>
+            </div>
+            <h3 class="game-card__name">Starforge Tactics</h3>
+          </article>
+          <article class="game-card" style="--delay: 0.4s">
+            <div class="game-card__art game-card__art--circuit"></div>
+            <span class="game-card__badge">-55%</span>
+            <div class="game-card__overlay">
+              <p class="game-card__price">MXN $199.99</p>
+              <button type="button" class="game-card__buy">Comprar</button>
+            </div>
+            <h3 class="game-card__name">Circuit Breakers League</h3>
+          </article>
+        </div>
+
+        <div class="carousel reveal" data-reveal>
+          <button type="button" class="carousel__arrow carousel__arrow--prev" id="carouselPrev" aria-label="Anterior">‹</button>
+          <div class="carousel__track" id="carouselTrack">
+            <div class="carousel__chip">Cupón Grand Prix</div>
+            <div class="carousel__chip">Nuevo: pistas retro</div>
+            <div class="carousel__chip">Lista de deseos -70%</div>
+            <div class="carousel__chip">Evento: misiones diarias</div>
+            <div class="carousel__chip">DLC en oferta</div>
+            <div class="carousel__chip">Comunidad creativa</div>
+          </div>
+          <button type="button" class="carousel__arrow carousel__arrow--next" id="carouselNext" aria-label="Siguiente">›</button>
+        </div>
+      </section>
+
+      <!-- Ofertas del día -->
+      <section class="daily reveal" id="ofertas" data-reveal>
+        <div class="daily__inner">
+          <div class="daily__left">
+            <span class="daily__bolt" aria-hidden="true">⚡</span>
+            <h2 class="daily__title">Ofertas relámpago del día</h2>
+            <p class="daily__hint">Stock limitado — se reinicia cada 24 h</p>
+          </div>
+          <div class="daily__timer" id="dailyTimer" aria-live="polite">
+            <span id="dailyH">00</span><span class="daily__sep">:</span>
+            <span id="dailyM">00</span><span class="daily__sep">:</span>
+            <span id="dailyS">00</span>
+          </div>
+          <div class="daily__deals">
+            <span class="daily__pill">Indie Mix -90%</span>
+            <span class="daily__pill">Co-op Pack</span>
+            <span class="daily__pill">Simuladores</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bloque extra para scroll reveal -->
+      <section class="section extras reveal" id="extras" data-reveal>
+        <h2 class="section__title">Grand Prix — Pistas extras</h2>
+        <p class="extras__text">
+          Completa vueltas en la tienda, gana puntos y desbloquea fondos para tu perfil.
+          Esta página es una demostración visual inspirada en el evento de rebajas veraniegas.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer reveal" id="footer" data-reveal>
+      <div class="footer__cols">
+        <div>
+          <h3 class="footer__h">VALVE</h3>
+          <ul class="footer__list">
+            <li><a href="#">Empleo</a></li>
+            <li><a href="#">Steamworks</a></li>
+            <li><a href="#">Distribución</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="footer__h">RECURSOS</h3>
+          <ul class="footer__list">
+            <li><a href="#">Soporte</a></li>
+            <li><a href="#">Calibradores</a></li>
+            <li><a href="#">Privacidad</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="footer__h">COMUNIDAD</h3>
+          <ul class="footer__list">
+            <li><a href="#">Discusiones</a></li>
+            <li><a href="#">Mercado</a></li>
+            <li><a href="#">Taller</a></li>
+          </ul>
+        </div>
+      </div>
+      <p class="footer__legal">© Demo educativa — diseño inspirado en la tienda Steam. No afiliado a Valve Corporation.</p>
+    </footer>
+  </div>
+
+  <script src="js/app.js" defer></script>
+</body>
+</html>
